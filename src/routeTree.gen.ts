@@ -10,33 +10,73 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ClaseRouteImport } from './routes/clase'
+import { Route as PanelRouteImport } from './routes/panel'
+import { Route as RegistroRouteImport } from './routes/registro'
+import { Route as TareasIdRouteImport } from './routes/tareas.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ClaseRoute = ClaseRouteImport.update({
+  id: '/clase',
+  path: '/clase',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PanelRoute = PanelRouteImport.update({
+  id: '/panel',
+  path: '/panel',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RegistroRoute = RegistroRouteImport.update({
+  id: '/registro',
+  path: '/registro',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TareasIdRoute = TareasIdRouteImport.update({
+  id: '/tareas/$id',
+  path: '/tareas/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/clase': typeof ClaseRoute
+  '/panel': typeof PanelRoute
+  '/registro': typeof RegistroRoute
+  '/tareas/$id': typeof TareasIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/clase': typeof ClaseRoute
+  '/panel': typeof PanelRoute
+  '/registro': typeof RegistroRoute
+  '/tareas/$id': typeof TareasIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/clase': typeof ClaseRoute
+  '/panel': typeof PanelRoute
+  '/registro': typeof RegistroRoute
+  '/tareas/$id': typeof TareasIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/clase' | '/panel' | '/registro' | '/tareas/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/clase' | '/panel' | '/registro' | '/tareas/$id'
+  id: '__root__' | '/' | '/clase' | '/panel' | '/registro' | '/tareas/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ClaseRoute: typeof ClaseRoute
+  PanelRoute: typeof PanelRoute
+  RegistroRoute: typeof RegistroRoute
+  TareasIdRoute: typeof TareasIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +88,43 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/clase': {
+      id: '/clase'
+      path: '/clase'
+      fullPath: '/clase'
+      preLoaderRoute: typeof ClaseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/panel': {
+      id: '/panel'
+      path: '/panel'
+      fullPath: '/panel'
+      preLoaderRoute: typeof PanelRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/registro': {
+      id: '/registro'
+      path: '/registro'
+      fullPath: '/registro'
+      preLoaderRoute: typeof RegistroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tareas/$id': {
+      id: '/tareas/$id'
+      path: '/tareas/$id'
+      fullPath: '/tareas/$id'
+      preLoaderRoute: typeof TareasIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ClaseRoute: ClaseRoute,
+  PanelRoute: PanelRoute,
+  RegistroRoute: RegistroRoute,
+  TareasIdRoute: TareasIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

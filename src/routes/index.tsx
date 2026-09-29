@@ -1,24 +1,89 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { Keypad } from "@/components/aula/Keypad";
+import { LoadingScreen } from "@/components/aula/AppShell";
+import { getSession, loginWithCode } from "@/lib/aula.functions";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
 export const Route = createFileRoute("/")({
-  component: Index,
+  ssr: false,
+  head: () => ({
+    meta: [
+      { title: "Aula — acceso con código" },
+      {
+        name: "description",
+        content:
+          "Entra a tu clase con tu código de 6 dígitos. Tareas, avisos y calificaciones en un solo lugar.",
+      },
+      { property: "og:title", content: "Aula — acceso con código" },
+      {
+        property: "og:description",
+        content: "Entra a tu clase con tu código de 6 dígitos.",
+      },
+    ],
+  }),
+  component: LockScreen,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
-function Index() {
+function LockScreen() {
+  const navigate = useNavigate();
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+
+  const session = useQuery({ queryKey: ["session"], queryFn: () => getSession() });
+
+  useEffect(() => {
+    if (session.data?.member) navigate({ to: "/panel", replace: true });
+  }, [session.data, navigate]);
+
+  if (session.isLoading) return <LoadingScreen />;
+
+  const handleSubmit = async (code: string) => {
+    setPending(true);
+    setError(null);
+    const result = await loginWithCode({ data: { code } });
+    setPending(false);
+    if (!result.ok) {
+      setError(result.error ?? "Código incorrecto.");
+      return;
+    }
+    await session.refetch();
+    navigate({ to: "/panel", replace: true });
+  };
+
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
+    <div className="aula-shell grid min-h-screen place-items-center px-6 py-14 font-body text-ink antialiased">
+      <div className="aula-rise relative w-full max-w-4xl overflow-hidden rounded-3xl bg-ink p-8 text-mist md:p-12">
+        <div className="absolute -top-24 -right-24 size-72 rounded-full bg-c1/25 blur-3xl" />
+        <div className="relative grid gap-10 md:grid-cols-2 md:items-center">
+          <div>
+            <div className="mb-3 font-mono text-[11px] uppercase tracking-[0.2em] text-mist/50">
+              Aula · clase única
+            </div>
+            <h1 className="mb-2 font-display text-3xl font-bold tracking-tight md:text-4xl">
+              Hola de nuevo
+            </h1>
+            <p className="mb-8 text-sm text-mist/60">
+              Introduce tu código de 6 dígitos para entrar.
+            </p>
+            <Keypad onSubmit={handleSubmit} pending={pending} tone="dark" />
+            {error ? (
+              <p className="mt-6 font-mono text-xs text-danger">{error}</p>
+            ) : (
+              <p className="mt-6 font-mono text-xs text-mist/40">
+                Si olvidaste tu código, pide al dueño que lo restablezca.
+              </p>
+            )}
+            <Link
+              to="/registro"
+              className="mt-6 inline-block text-sm font-medium text-mist/80 underline decoration-mist/30 underline-offset-4 transition-colors hover:text-mist"
+            >
+              Es mi primera vez aquí
+            </Link>
+          </div>
+          <div className="hidden md:block" />
+        </div>
+      </div>
     </div>
   );
 }
