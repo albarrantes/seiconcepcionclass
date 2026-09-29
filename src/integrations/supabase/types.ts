@@ -14,7 +14,148 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      announcements: {
+        Row: {
+          author_id: string | null
+          body: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          author_id?: string | null
+          body: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          author_id?: string | null
+          body?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "announcements_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assignments: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string
+          due_at: string | null
+          id: string
+          points: number
+          subject: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          due_at?: string | null
+          id?: string
+          points?: number
+          subject?: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          due_at?: string | null
+          id?: string
+          points?: number
+          subject?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assignments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      members: {
+        Row: {
+          code: string | null
+          created_at: string
+          full_name: string
+          id: string
+          last_login_at: string | null
+          role: string
+        }
+        Insert: {
+          code?: string | null
+          created_at?: string
+          full_name: string
+          id?: string
+          last_login_at?: string | null
+          role?: string
+        }
+        Update: {
+          code?: string | null
+          created_at?: string
+          full_name?: string
+          id?: string
+          last_login_at?: string | null
+          role?: string
+        }
+        Relationships: []
+      }
+      submissions: {
+        Row: {
+          assignment_id: string
+          content: string
+          feedback: string | null
+          grade: number | null
+          id: string
+          member_id: string
+          submitted_at: string
+        }
+        Insert: {
+          assignment_id: string
+          content?: string
+          feedback?: string | null
+          grade?: number | null
+          id?: string
+          member_id: string
+          submitted_at?: string
+        }
+        Update: {
+          assignment_id?: string
+          content?: string
+          feedback?: string | null
+          grade?: number | null
+          id?: string
+          member_id?: string
+          submitted_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "submissions_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "submissions_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
