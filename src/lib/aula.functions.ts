@@ -296,10 +296,32 @@ export const createAnnouncement = createServerFn({ method: "POST" })
   });
 
 export const getAdminData = createServerFn({ method: "GET" }).handler(
-  async (): Promise<{ member: SessionMember; members: Member[] }> => {
-    const { requireOwner, listMembers } = await import("./aula.server");
+  async (): Promise<{
+    member: SessionMember;
+    members: Member[];
+    stats: { assignments: number; submissions: number; graded: number; pendingCodes: number };
+  }> => {
+    const { requireOwner, listMembers, supabaseAdmin } = await import("./aula.server");
     const member = await requireOwner();
-    return { member, members: await listMembers() };
+    const members = await listMembers();
+    const [assignments, submissions, graded] = await Promise.all([
+      supabaseAdmin.from("assignments").select("id", { count: "exact", head: true }),
+      supabaseAdmin.from("submissions").select("id", { count: "exact", head: true }),
+      supabaseAdmin
+        .from("submissions")
+        .select("id", { count: "exact", head: true })
+        .not("grade", "is", null),
+    ]);
+    return {
+      member,
+      members,
+      stats: {
+        assignments: assignments.count ?? 0,
+        submissions: submissions.count ?? 0,
+        graded: graded.count ?? 0,
+        pendingCodes: members.filter((row) => !row.code).length,
+      },
+    };
   },
 );
 
@@ -314,6 +336,46 @@ export const addMember = createServerFn({ method: "POST" })
     const { error } = await supabaseAdmin
       .from("members")
       .insert({ full_name: fullName, role: data.role });
+    if (error) return { ok: false, error: "Ese nombre ya está en la lista." };
+    return { ok: true };
+  });
+
+export const addMembers = createServerFn({ method: "POST" })
+  .inputValidator((data: { fullNames: string[]; role: "teacher" | "student" }) => data)
+  .handler(async ({ data }): Promise<{ ok: boolean; added: number; error?: string }> => {
+    const { supabaseAdmin, requireOwner, normalizeName } = await import("./aula.server");
+    await requireOwner();
+    const names = Array.from(new Set(data.fullNames.map(normalizeName))).filter(
+      (name) => name.length >= 3,
+    );
+    if (names.length === 0) return { ok: false, added: 0, error: "Añade al menos un nombre completo." };
+    if (names.length > 100) return { ok: false, added: 0, error: "Puedes añadir hasta 100 personas cada vez." };
+
+    const { error } = await supabaseAdmin
+      .from("members")
+      .insert(names.map((full_name) => ({ full_name, role: data.role })));
+    if (error) {
+      return {
+        ok: false,
+        added: 0,
+        error: "Hay nombres repetidos o ya incluidos en la lista.",
+      };
+    }
+    return { ok: true, added: names.length };
+  });
+
+export const renameMember = createServerFn({ method: "POST" })
+  .inputValidator((data: { memberId: string; fullName: string }) => data)
+  .handler(async ({ data }): Promise<{ ok: boolean; error?: string }> => {
+    const { supabaseAdmin, requireOwner, normalizeName } = await import("./aula.server");
+    const owner = await requireOwner();
+    const fullName = normalizeName(data.fullName);
+    if (fullName.length < 3) return { ok: false, error: "Escribe el nombre completo." };
+    if (data.memberId === owner.id) return { ok: false, error: "Tu cuenta principal no se puede renombrar aquí." };
+    const { error } = await supabaseAdmin
+      .from("members")
+      .update({ full_name: fullName })
+      .eq("id", data.memberId);
     if (error) return { ok: false, error: "Ese nombre ya está en la lista." };
     return { ok: true };
   });
