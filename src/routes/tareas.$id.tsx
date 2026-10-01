@@ -10,13 +10,15 @@ export const Route = createFileRoute("/tareas/$id")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Tarea — Aula" },
+      { title: "Tarea — SEI Concepcion" },
       {
         name: "description",
         content: "Detalle de la tarea: instrucciones, tu entrega y la nota del profesor.",
       },
-      { property: "og:title", content: "Tarea — Aula" },
+      { property: "og:title", content: "Tarea — SEI Concepcion" },
       { property: "og:description", content: "Instrucciones, entrega y nota." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: TareaDetalle,

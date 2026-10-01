@@ -16,17 +16,19 @@ export const Route = createFileRoute("/admin")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Administración — Aula" },
+      { title: "Administración — SEI Concepcion" },
       {
         name: "description",
         content:
           "Lista de la clase: añade nombres, cambia roles y restablece los códigos de acceso.",
       },
-      { property: "og:title", content: "Administración — Aula" },
+      { property: "og:title", content: "Administración — SEI Concepcion" },
       {
         property: "og:description",
         content: "Añade nombres, cambia roles y restablece códigos.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Admin,

@@ -10,16 +10,18 @@ export const Route = createFileRoute("/panel")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Panel de clase — Aula" },
+      { title: "Panel de clase — SEI Concepcion" },
       {
         name: "description",
         content: "Tus tareas, entregas, avisos del profesor y calificaciones de la clase.",
       },
-      { property: "og:title", content: "Panel de clase — Aula" },
+      { property: "og:title", content: "Panel de clase — SEI Concepcion" },
       {
         property: "og:description",
         content: "Tareas, avisos y calificaciones de tu clase.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Panel,
