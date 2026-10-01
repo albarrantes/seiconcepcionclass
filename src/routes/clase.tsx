@@ -14,16 +14,18 @@ export const Route = createFileRoute("/clase")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Publicar en la clase — Aula" },
+      { title: "Publicar en la clase — SEI Concepcion" },
       {
         name: "description",
         content: "Crea tareas con fecha de entrega y publica avisos para toda la clase.",
       },
-      { property: "og:title", content: "Publicar en la clase — Aula" },
+      { property: "og:title", content: "Publicar en la clase — SEI Concepcion" },
       {
         property: "og:description",
         content: "Crea tareas y publica avisos para la clase.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Clase,

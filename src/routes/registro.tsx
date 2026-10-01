@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import logoAsset from "@/assets/sei-concepcion-logo.jpg.asset.json";
 import { Keypad } from "@/components/aula/Keypad";
 import { checkName, createCode } from "@/lib/aula.functions";
 
@@ -7,16 +8,18 @@ export const Route = createFileRoute("/registro")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Primer acceso — Aula" },
+      { title: "Primer acceso — SEI Concepcion" },
       {
         name: "description",
         content: "Escribe tu nombre completo y elige el código de 6 dígitos con el que entrarás a tu clase.",
       },
-      { property: "og:title", content: "Primer acceso — Aula" },
+      { property: "og:title", content: "Primer acceso — SEI Concepcion" },
       {
         property: "og:description",
         content: "Escribe tu nombre y elige tu código de acceso.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Registro,
@@ -56,6 +59,11 @@ function Registro() {
   return (
     <div className="aula-shell min-h-screen px-6 py-14 font-body text-ink antialiased">
       <div className="mx-auto max-w-4xl">
+        <img
+          src={logoAsset.url}
+          alt="Logo de SEI Concepcion"
+          className="mb-8 h-16 w-auto rounded-md object-contain"
+        />
         <div className="mb-6 flex flex-wrap items-baseline gap-4">
           <span className="font-mono text-xs text-c1">(a)</span>
           <h1 className="font-display text-2xl font-bold tracking-tight text-balance md:text-3xl">
@@ -119,7 +127,7 @@ function Registro() {
               </div>
             )}
             <p className="mt-4 text-xs text-ink-soft/70">
-              Elige 6 dígitos. Los usarás cada vez que abras Aula.
+              Elige 6 dígitos. Los usarás cada vez que abras SEI Concepcion.
             </p>
           </div>
         </div>

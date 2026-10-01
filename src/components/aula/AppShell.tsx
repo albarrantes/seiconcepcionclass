@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import type { ReactNode } from "react";
+import logoAsset from "@/assets/sei-concepcion-logo.jpg.asset.json";
 import { logout } from "@/lib/aula.functions";
 import { initials, type SessionMember } from "@/lib/aula-types";
 
@@ -22,11 +23,13 @@ export function AppShell({ member, children }: { member: SessionMember; children
       <header className="sticky top-0 z-30 border-b border-line bg-white/55 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
           <Link to="/panel" className="flex items-center gap-3">
-            <div className="grid size-9 place-items-center rounded-lg bg-ink font-display text-sm font-bold text-mist">
-              A
-            </div>
+            <img
+              src={logoAsset.url}
+              alt="Logo de SEI Concepcion"
+              className="h-10 w-[5.4rem] rounded-md object-cover"
+            />
             <div className="leading-none">
-              <div className="font-display text-lg font-bold tracking-tight">Aula</div>
+              <div className="font-display text-lg font-bold tracking-tight">SEI Concepcion</div>
               <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-ink-soft/60">
                 Clase única
               </div>
@@ -72,7 +75,7 @@ export function AppShell({ member, children }: { member: SessionMember; children
 
       <footer className="border-t border-line">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-6 py-8 md:flex-row">
-          <div className="font-display font-bold tracking-tight">Aula</div>
+          <div className="font-display font-bold tracking-tight">SEI Concepcion</div>
           <div className="font-mono text-xs text-ink-soft/60">
             Acceso por código · {member.full_name}
           </div>
