@@ -10,13 +10,13 @@ export const Route = createFileRoute("/")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Aula — acceso con código" },
+      { title: "SEI Concepcion — acceso con código" },
       {
         name: "description",
         content:
           "Entra a tu clase con tu código de 6 dígitos. Tareas, avisos y calificaciones en un solo lugar.",
       },
-      { property: "og:title", content: "Aula — acceso con código" },
+      { property: "og:title", content: "SEI Concepcion — acceso con código" },
       {
         property: "og:description",
         content: "Entra a tu clase con tu código de 6 dígitos.",
