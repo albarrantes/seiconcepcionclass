@@ -36,7 +36,8 @@ function LockScreen() {
   const session = useQuery({ queryKey: ["session"], queryFn: () => getSession() });
 
   useEffect(() => {
-    if (session.data?.member) navigate({ to: "/panel", replace: true });
+    const m = session.data?.member;
+    if (m) navigate({ to: m.role === "owner" ? "/admin" : "/panel", replace: true });
   }, [session.data, navigate]);
 
   if (session.isLoading) return <LoadingScreen />;
@@ -50,8 +51,9 @@ function LockScreen() {
       setError(result.error ?? "Código incorrecto.");
       return;
     }
-    await session.refetch();
-    navigate({ to: "/panel", replace: true });
+    const fresh = await session.refetch();
+    const role = fresh.data?.member?.role;
+    navigate({ to: role === "owner" ? "/admin" : "/panel", replace: true });
   };
 
   return (

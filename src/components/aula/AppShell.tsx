@@ -53,6 +53,14 @@ export function AppShell({ member, children }: { member: SessionMember; children
           </nav>
 
           <div className="flex items-center gap-3">
+            {member.role === "owner" ? (
+              <Link
+                to="/admin"
+                className="rounded-full bg-ink px-3 py-1.5 font-mono text-xs text-mist md:hidden"
+              >
+                Admin
+              </Link>
+            ) : null}
             <div className="hidden items-center gap-2 rounded-full bg-white/70 px-3 py-1.5 ring-1 ring-line sm:flex">
               <span className="size-2 rounded-full bg-c2" />
               <span className="font-mono text-xs text-ink-soft">Código {member.code}</span>
