@@ -9,7 +9,14 @@ function sessionConfig() {
     password: process.env["SESSION_SECRET"]!,
     name: "aula-session",
     maxAge: 60 * 60 * 24 * 30,
-    cookie: { httpOnly: true, secure: true, sameSite: "lax" as const, path: "/" },
+    // "none" + partitioned so the session survives inside embedded previews (iframes).
+    cookie: {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none" as const,
+      partitioned: true,
+      path: "/",
+    },
   };
 }
 
