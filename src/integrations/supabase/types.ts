@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      announcement_replies: {
+        Row: {
+          announcement_id: string
+          author_id: string | null
+          body: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          announcement_id: string
+          author_id?: string | null
+          body: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          announcement_id?: string
+          author_id?: string | null
+          body?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "announcement_replies_announcement_id_fkey"
+            columns: ["announcement_id"]
+            isOneToOne: false
+            referencedRelation: "announcements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "announcement_replies_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       announcements: {
         Row: {
           author_id: string | null
