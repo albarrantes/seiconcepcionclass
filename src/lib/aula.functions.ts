@@ -9,6 +9,58 @@ import type {
 } from "./aula-types";
 import { isValidCode } from "./aula-types";
 
+export type Attachment = { path: string; name: string };
+
+/** Only accept files the caller uploaded into their own folder. */
+function cleanAttachment(file: Attachment | null | undefined, memberId: string): Attachment | null {
+  if (!file || typeof file.path !== "string" || !file.path.startsWith(`${memberId}/`)) return null;
+  if (file.path.includes("..")) return null;
+  return { path: file.path, name: String(file.name ?? "archivo").slice(0, 200) };
+}
+
+/** Signed one-time upload slot inside the caller's own folder. */
+export const prepareUpload = createServerFn({ method: "POST" })
+  .inputValidator((data: { fileName: string }) => data)
+  .handler(async ({ data }): Promise<{ path: string; token: string }> => {
+    const { supabaseAdmin, requireMember } = await import("./aula.server");
+    const member = await requireMember();
+    const safe = String(data.fileName).replace(/[^\w.\-]+/g, "_").slice(-80) || "archivo";
+    const path = `${member.id}/${crypto.randomUUID()}-${safe}`;
+    const { data: slot, error } = await supabaseAdmin.storage
+      .from("aula-files")
+      .createSignedUploadUrl(path);
+    if (error || !slot) throw new Error("No se pudo preparar la subida.");
+    return { path, token: slot.token };
+  });
+
+/** Temporary download link; announcements are class-wide, submissions only for owner or staff. */
+export const getFileUrl = createServerFn({ method: "POST" })
+  .inputValidator((data: { path: string }) => data)
+  .handler(async ({ data }): Promise<{ url: string }> => {
+    const { supabaseAdmin, requireMember } = await import("./aula.server");
+    const member = await requireMember();
+    const { data: ann } = await supabaseAdmin
+      .from("announcements")
+      .select("id")
+      .eq("file_path", data.path)
+      .maybeSingle();
+    let allowed = Boolean(ann);
+    if (!allowed) {
+      const { data: sub } = await supabaseAdmin
+        .from("submissions")
+        .select("member_id")
+        .eq("file_path", data.path)
+        .maybeSingle();
+      allowed = Boolean(sub) && (sub!.member_id === member.id || member.role !== "student");
+    }
+    if (!allowed) throw new Error("No tienes acceso a este archivo.");
+    const { data: link, error } = await supabaseAdmin.storage
+      .from("aula-files")
+      .createSignedUrl(data.path, 600);
+    if (error || !link) throw new Error("No se pudo abrir el archivo.");
+    return { url: link.signedUrl };
+  });
+
 /** Current signed-in member, or null when the visitor must enter a code. */
 export const getSession = createServerFn({ method: "GET" }).handler(
   async (): Promise<{ member: SessionMember | null }> => {
@@ -117,7 +169,7 @@ export const getDashboard = createServerFn({ method: "GET" }).handler(
     const [announcementRes, assignmentRes, submissionRes, memberRes] = await Promise.all([
       supabaseAdmin
         .from("announcements")
-        .select("id, body, created_at, members(full_name)")
+        .select("id, body, created_at, file_path, file_name, members(full_name)")
         .order("created_at", { ascending: false })
         .limit(20),
       supabaseAdmin
@@ -126,7 +178,7 @@ export const getDashboard = createServerFn({ method: "GET" }).handler(
         .order("due_at", { ascending: true, nullsFirst: false }),
       supabaseAdmin
         .from("submissions")
-        .select("id, assignment_id, member_id, content, grade, feedback, submitted_at"),
+        .select("id, assignment_id, member_id, content, grade, feedback, submitted_at, file_path, file_name"),
       supabaseAdmin.from("members").select("id"),
     ]);
 
@@ -152,12 +204,16 @@ export const getDashboard = createServerFn({ method: "GET" }).handler(
         id: string;
         body: string;
         created_at: string;
+        file_path: string | null;
+        file_name: string | null;
         members: { full_name: string } | null;
       }>
     ).map((row) => ({
       id: row.id,
       body: row.body,
       created_at: row.created_at,
+      file_path: row.file_path,
+      file_name: row.file_name,
       author_name: row.members?.full_name ?? null,
     }));
 
@@ -193,7 +249,7 @@ export const getAssignment = createServerFn({ method: "GET" })
 
     const { data: rows } = await supabaseAdmin
       .from("submissions")
-      .select("id, assignment_id, member_id, content, grade, feedback, submitted_at, members(full_name)")
+      .select("id, assignment_id, member_id, content, grade, feedback, submitted_at, file_path, file_name, members(full_name)")
       .eq("assignment_id", data.id)
       .order("submitted_at", { ascending: true });
 
@@ -211,17 +267,19 @@ export const getAssignment = createServerFn({ method: "GET" })
   });
 
 export const submitAssignment = createServerFn({ method: "POST" })
-  .inputValidator((data: { assignmentId: string; content: string }) => data)
+  .inputValidator((data: { assignmentId: string; content: string; file?: Attachment | null }) => data)
   .handler(async ({ data }): Promise<{ ok: boolean; error?: string }> => {
     const { supabaseAdmin, requireMember } = await import("./aula.server");
     const member = await requireMember();
     const content = data.content.trim().slice(0, 5000);
-    if (!content) return { ok: false, error: "Escribe tu entrega antes de enviarla." };
+    const file = cleanAttachment(data.file, member.id);
+    if (!content && !file) return { ok: false, error: "Escribe tu entrega o adjunta un archivo." };
+    const filePatch = file ? { file_path: file.path, file_name: file.name } : {};
 
     const { error } = await supabaseAdmin
       .from("submissions")
       .upsert(
-        { assignment_id: data.assignmentId, member_id: member.id, content },
+        { assignment_id: data.assignmentId, member_id: member.id, content, ...filePatch },
         { onConflict: "assignment_id,member_id" },
       );
     if (error) return { ok: false, error: "No se pudo enviar la entrega." };
@@ -282,15 +340,19 @@ export const deleteAssignment = createServerFn({ method: "POST" })
   });
 
 export const createAnnouncement = createServerFn({ method: "POST" })
-  .inputValidator((data: { body: string }) => data)
+  .inputValidator((data: { body: string; file?: Attachment | null }) => data)
   .handler(async ({ data }): Promise<{ ok: boolean; error?: string }> => {
     const { supabaseAdmin, requireStaff } = await import("./aula.server");
     const member = await requireStaff();
-    const body = data.body.trim().slice(0, 1000);
+    const file = cleanAttachment(data.file, member.id);
+    const body = data.body.trim().slice(0, 1000) || (file ? "Archivo adjunto" : "");
     if (!body) return { ok: false, error: "Escribe el aviso." };
-    const { error } = await supabaseAdmin
-      .from("announcements")
-      .insert({ body, author_id: member.id });
+    const { error } = await supabaseAdmin.from("announcements").insert({
+      body,
+      author_id: member.id,
+      file_path: file?.path ?? null,
+      file_name: file?.name ?? null,
+    });
     if (error) return { ok: false, error: "No se pudo publicar el aviso." };
     return { ok: true };
   });

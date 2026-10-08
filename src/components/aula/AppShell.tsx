@@ -61,10 +61,6 @@ export function AppShell({ member, children }: { member: SessionMember; children
                 Admin
               </Link>
             ) : null}
-            <div className="hidden items-center gap-2 rounded-full bg-white/70 px-3 py-1.5 ring-1 ring-line sm:flex">
-              <span className="size-2 rounded-full bg-c2" />
-              <span className="font-mono text-xs text-ink-soft">Código {member.code}</span>
-            </div>
             <div className="grid size-9 place-items-center rounded-full bg-c1/15 font-display text-sm font-semibold text-c1">
               {initials(member.full_name)}
             </div>

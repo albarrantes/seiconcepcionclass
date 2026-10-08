@@ -9,6 +9,7 @@ import {
   getDashboard,
 } from "@/lib/aula.functions";
 import { formatDateTime } from "@/lib/format";
+import { FilePicker, uploadAttachment } from "@/components/aula/Files";
 
 export const Route = createFileRoute("/clase")({
   ssr: false,
@@ -43,6 +44,8 @@ function Clase() {
   const [dueAt, setDueAt] = useState("");
   const [body, setBody] = useState("");
   const [message, setMessage] = useState<string | null>(null);
+  const [annFile, setAnnFile] = useState<File | null>(null);
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     if (dashboard.isError) navigate({ to: "/", replace: true });
@@ -75,11 +78,21 @@ function Clase() {
   };
 
   const submitAnnouncement = async () => {
-    const result = await createAnnouncement({ data: { body } });
-    setMessage(result.ok ? "Aviso publicado." : (result.error ?? "Error"));
-    if (result.ok) {
-      setBody("");
-      refresh();
+    if (busy) return;
+    setBusy(true);
+    try {
+      const file = annFile ? await uploadAttachment(annFile) : null;
+      const result = await createAnnouncement({ data: { body, file } });
+      setMessage(result.ok ? "Aviso publicado." : (result.error ?? "Error"));
+      if (result.ok) {
+        setBody("");
+        setAnnFile(null);
+        refresh();
+      }
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Error al subir el archivo.");
+    } finally {
+      setBusy(false);
     }
   };
 
@@ -148,12 +161,14 @@ function Clase() {
                 placeholder="Mañana traed el libro de lectura."
                 className={inputClass}
               />
+              <FilePicker file={annFile} onChange={setAnnFile} />
               <button
                 type="button"
+                disabled={busy}
                 onClick={submitAnnouncement}
                 className="w-full rounded-xl bg-c1 py-3 font-display text-sm font-semibold text-mist transition-colors hover:bg-c1/90"
               >
-                Publicar aviso
+                {busy ? "Publicando…" : "Publicar aviso"}
               </button>
             </div>
 
