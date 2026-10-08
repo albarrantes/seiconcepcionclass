@@ -15,6 +15,13 @@
       "when": 1791454227926,
       "tag": "0001_attachments",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791454785007,
+      "tag": "0002_assignment_files",
+      "breakpoints": true
     }
   ]
 }

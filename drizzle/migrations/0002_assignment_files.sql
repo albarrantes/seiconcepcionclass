@@ -1,0 +1,1 @@
+ALTER TABLE public.assignments ADD COLUMN file_path text, ADD COLUMN file_name text;

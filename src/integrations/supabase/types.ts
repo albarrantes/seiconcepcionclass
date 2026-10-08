@@ -94,6 +94,8 @@ export type Database = {
           created_by: string | null
           description: string
           due_at: string | null
+          file_name: string | null
+          file_path: string | null
           id: string
           points: number
           subject: string
@@ -104,6 +106,8 @@ export type Database = {
           created_by?: string | null
           description?: string
           due_at?: string | null
+          file_name?: string | null
+          file_path?: string | null
           id?: string
           points?: number
           subject?: string
@@ -114,6 +118,8 @@ export type Database = {
           created_by?: string | null
           description?: string
           due_at?: string | null
+          file_name?: string | null
+          file_path?: string | null
           id?: string
           points?: number
           subject?: string
