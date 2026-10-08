@@ -20,6 +20,8 @@ export type Announcement = {
   body: string;
   created_at: string;
   author_name: string | null;
+  file_path: string | null;
+  file_name: string | null;
 };
 
 export type Assignment = {
@@ -40,6 +42,8 @@ export type Submission = {
   grade: number | null;
   feedback: string | null;
   submitted_at: string;
+  file_path: string | null;
+  file_name: string | null;
 };
 
 export type AssignmentWithMine = Assignment & {
