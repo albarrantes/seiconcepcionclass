@@ -5,6 +5,7 @@ import { AppShell, LoadingScreen, SectionHeader } from "@/components/aula/AppShe
 import { getAssignment, gradeSubmission, submitAssignment } from "@/lib/aula.functions";
 import { formatDateTime, relativeDue } from "@/lib/format";
 import { initials } from "@/lib/aula-types";
+import { FileLink, FilePicker, uploadAttachment } from "@/components/aula/Files";
 
 export const Route = createFileRoute("/tareas/$id")({
   ssr: false,
@@ -37,6 +38,8 @@ function TareaDetalle() {
   const [content, setContent] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [loadedFor, setLoadedFor] = useState<string | null>(null);
+  const [file, setFile] = useState<File | null>(null);
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     if (query.isError) navigate({ to: "/panel", replace: true });
@@ -54,11 +57,21 @@ function TareaDetalle() {
   const due = relativeDue(assignment.due_at);
 
   const send = async () => {
-    const result = await submitAssignment({ data: { assignmentId: id, content } });
-    setMessage(result.ok ? "Entrega guardada." : (result.error ?? "Error"));
-    if (result.ok) {
-      queryClient.invalidateQueries({ queryKey: ["assignment", id] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+    if (busy) return;
+    setBusy(true);
+    try {
+      const uploaded = file ? await uploadAttachment(file) : null;
+      const result = await submitAssignment({ data: { assignmentId: id, content, file: uploaded } });
+      setMessage(result.ok ? "Entrega guardada." : (result.error ?? "Error"));
+      if (result.ok) {
+        setFile(null);
+        queryClient.invalidateQueries({ queryKey: ["assignment", id] });
+        queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      }
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Error al subir el archivo.");
+    } finally {
+      setBusy(false);
     }
   };
 
@@ -87,12 +100,16 @@ function TareaDetalle() {
                 placeholder="Escribe aquí tu respuesta o el enlace a tu trabajo."
                 className="w-full rounded-xl bg-white/80 px-4 py-3 text-sm ring-1 ring-line focus:ring-2 focus:ring-c1/40 focus:outline-none"
               />
+              <div className="mt-3">
+                <FilePicker file={file} onChange={setFile} />
+              </div>
               <button
                 type="button"
+                disabled={busy}
                 onClick={send}
                 className="mt-4 rounded-xl bg-ink px-5 py-3 font-display text-sm font-semibold text-mist transition-colors hover:bg-ink/90"
               >
-                {mine ? "Actualizar entrega" : "Enviar entrega"}
+                {busy ? "Enviando…" : mine ? "Actualizar entrega" : "Enviar entrega"}
               </button>
               {message ? <p className="mt-3 font-mono text-xs text-c2">{message}</p> : null}
             </div>
@@ -105,6 +122,7 @@ function TareaDetalle() {
             {mine ? (
               <div className="space-y-2 text-sm">
                 <p className="text-ink-soft">Entregada {formatDateTime(mine.submitted_at)}</p>
+                <FileLink path={mine.file_path} name={mine.file_name} />
                 <p className="font-display text-2xl font-bold text-c2">
                   {mine.grade !== null ? mine.grade : "Sin calificar"}
                 </p>
@@ -160,6 +178,8 @@ function GradeRow({
     grade: number | null;
     feedback: string | null;
     submitted_at: string;
+    file_path: string | null;
+    file_name: string | null;
   };
   onSaved: () => void;
 }) {
@@ -187,6 +207,7 @@ function GradeRow({
         </span>
       </div>
       <p className="mt-3 text-sm whitespace-pre-line text-ink-soft">{submission.content}</p>
+      <FileLink path={submission.file_path} name={submission.file_name} />
       <div className="mt-3 flex flex-wrap items-center gap-3">
         <input
           value={grade}

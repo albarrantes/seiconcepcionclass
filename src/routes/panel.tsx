@@ -5,6 +5,7 @@ import { AppShell, LoadingScreen, SectionHeader } from "@/components/aula/AppShe
 import { getDashboard } from "@/lib/aula.functions";
 import { subjectAccent } from "@/lib/aula-types";
 import { formatDateTime, relativeDue } from "@/lib/format";
+import { FileLink } from "@/components/aula/Files";
 
 export const Route = createFileRoute("/panel")({
   ssr: false,
@@ -162,6 +163,7 @@ function Panel() {
                     {announcements.slice(0, 4).map((announcement) => (
                       <div key={announcement.id}>
                         <p className="text-sm text-ink-soft">{announcement.body}</p>
+                        <FileLink path={announcement.file_path} name={announcement.file_name} />
                         <p className="mt-1 font-mono text-[11px] text-ink-soft/50">
                           {announcement.author_name ?? "Clase"} ·{" "}
                           {formatDateTime(announcement.created_at)}
