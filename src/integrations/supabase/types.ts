@@ -58,18 +58,24 @@ export type Database = {
           author_id: string | null
           body: string
           created_at: string
+          file_name: string | null
+          file_path: string | null
           id: string
         }
         Insert: {
           author_id?: string | null
           body: string
           created_at?: string
+          file_name?: string | null
+          file_path?: string | null
           id?: string
         }
         Update: {
           author_id?: string | null
           body?: string
           created_at?: string
+          file_name?: string | null
+          file_path?: string | null
           id?: string
         }
         Relationships: [
@@ -155,6 +161,8 @@ export type Database = {
           assignment_id: string
           content: string
           feedback: string | null
+          file_name: string | null
+          file_path: string | null
           grade: number | null
           id: string
           member_id: string
@@ -164,6 +172,8 @@ export type Database = {
           assignment_id: string
           content?: string
           feedback?: string | null
+          file_name?: string | null
+          file_path?: string | null
           grade?: number | null
           id?: string
           member_id: string
@@ -173,6 +183,8 @@ export type Database = {
           assignment_id?: string
           content?: string
           feedback?: string | null
+          file_name?: string | null
+          file_path?: string | null
           grade?: number | null
           id?: string
           member_id?: string
