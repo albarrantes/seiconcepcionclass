@@ -50,7 +50,7 @@ export function Keypad({ length = 6, onSubmit, pending = false, tone = "dark" }:
                   digit ? `${slotBase} aula-pop` : emptySlot
                 }`}
               >
-                {digit ?? "·"}
+                {digit ? "●" : "·"}
               </span>
             );
           })}

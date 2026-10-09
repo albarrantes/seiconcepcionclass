@@ -4,7 +4,7 @@ export type Member = {
   id: string;
   full_name: string;
   role: Role;
-  code: string | null;
+  has_code: boolean;
   last_login_at: string | null;
 };
 
@@ -12,7 +12,6 @@ export type SessionMember = {
   id: string;
   full_name: string;
   role: Role;
-  code: string;
 };
 
 export type Announcement = {

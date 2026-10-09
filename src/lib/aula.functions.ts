@@ -381,7 +381,7 @@ export const getAdminData = createServerFn({ method: "GET" }).handler(
         assignments: assignments.count ?? 0,
         submissions: submissions.count ?? 0,
         graded: graded.count ?? 0,
-        pendingCodes: members.filter((row) => !row.code).length,
+        pendingCodes: members.filter((row) => !row.has_code).length,
       },
     };
   },

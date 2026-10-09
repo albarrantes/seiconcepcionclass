@@ -77,7 +77,7 @@ function Admin() {
     const matchesSearch = row.full_name.toLocaleLowerCase("es").includes(search.toLocaleLowerCase("es"));
     const matchesFilter =
       filter === "all" ||
-      (filter === "pending" ? !row.code : row.role === filter);
+      (filter === "pending" ? !row.has_code : row.role === filter);
     return matchesSearch && matchesFilter;
   });
 
@@ -185,7 +185,7 @@ function Admin() {
           <div className="min-w-[760px]">
           <div className="grid grid-cols-12 border-b border-line px-5 py-3 font-mono text-[11px] uppercase tracking-[0.14em] text-ink-soft/60">
             <div className="col-span-4">Miembro</div>
-            <div className="col-span-2">Código</div>
+            <div className="col-span-2">Acceso</div>
             <div className="col-span-2">Rol</div>
             <div className="col-span-2">Último acceso</div>
             <div className="col-span-2 text-right">Acción</div>
@@ -218,8 +218,12 @@ function Admin() {
                   />
                 )}
               </div>
-              <div className="col-span-2 font-mono text-sm">
-                {row.code ?? <span className="text-ink-soft/40">sin código</span>}
+              <div className="col-span-2 text-sm">
+                {row.has_code ? (
+                  <span className="text-c2">Activo</span>
+                ) : (
+                  <span className="text-ink-soft/40">Sin código</span>
+                )}
               </div>
               <div className="col-span-2">
                 {row.role === "owner" ? (
