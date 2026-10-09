@@ -4,7 +4,18 @@ import { useEffect, useState } from "react";
 import logoAsset from "@/assets/sei-concepcion-logo.jpg.asset.json";
 import { Keypad } from "@/components/aula/Keypad";
 import { LoadingScreen } from "@/components/aula/AppShell";
-import { getSession, loginWithCode } from "@/lib/aula.functions";
+import { answerOwnerChallenge, getSession, loginWithCode } from "@/lib/aula.functions";
+import emiratesImg from "@/assets/air-emirates.jpg";
+import iberiaImg from "@/assets/air-iberia.jpg";
+import qatarImg from "@/assets/air-qatar.jpg";
+import ryanairImg from "@/assets/air-ryanair.jpg";
+
+const AIRLINES = [
+  { id: "iberia", name: "Iberia", img: iberiaImg },
+  { id: "qatar", name: "Qatar Airways", img: qatarImg },
+  { id: "emirates", name: "Emirates", img: emiratesImg },
+  { id: "ryanair", name: "Ryanair", img: ryanairImg },
+];
 
 export const Route = createFileRoute("/")({
   ssr: false,
@@ -32,6 +43,7 @@ function LockScreen() {
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [challenge, setChallenge] = useState(false);
 
   const session = useQuery({ queryKey: ["session"], queryFn: () => getSession() });
 
@@ -51,10 +63,64 @@ function LockScreen() {
       setError(result.error ?? "Código incorrecto.");
       return;
     }
+    if (result.challenge) {
+      setChallenge(true);
+      return;
+    }
     const fresh = await session.refetch();
     const role = fresh.data?.member?.role;
     navigate({ to: role === "owner" ? "/admin" : "/panel", replace: true });
   };
+
+  const handleAnswer = async (answer: string) => {
+    setPending(true);
+    setError(null);
+    const result = await answerOwnerChallenge({ data: { answer } });
+    setPending(false);
+    if (!result.ok) {
+      setChallenge(false);
+      setError(result.error ?? "Respuesta incorrecta.");
+      return;
+    }
+    await session.refetch();
+    navigate({ to: "/admin", replace: true });
+  };
+
+  if (challenge) {
+    return (
+      <div className="aula-shell grid min-h-screen place-items-center px-5 py-10 font-body antialiased">
+        <div className="aula-rise w-full max-w-2xl rounded-3xl bg-ink p-6 text-mist md:p-10">
+          <div className="mb-3 font-mono text-[11px] uppercase tracking-[0.2em] text-mist/50">
+            Segunda protección
+          </div>
+          <h1 className="mb-6 font-display text-2xl font-bold md:text-3xl">
+            ¿Cuál es tu aerolínea favorita?
+          </h1>
+          <div className="grid grid-cols-2 gap-3">
+            {AIRLINES.map((a) => (
+              <button
+                key={a.id}
+                type="button"
+                disabled={pending}
+                onClick={() => handleAnswer(a.id)}
+                className="overflow-hidden rounded-xl border border-line bg-card text-left transition hover:border-primary disabled:opacity-50"
+              >
+                <img src={a.img} alt={a.name} width={992} height={672} className="aspect-[3/2] w-full object-cover" />
+                <div className="px-3 py-2 text-sm font-medium">{a.name}</div>
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={() => setChallenge(false)}
+            className="mt-6 text-sm text-mist/70 underline underline-offset-4"
+          >
+            Volver
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="aula-shell grid min-h-screen place-items-center px-6 py-14 font-body text-ink antialiased">
