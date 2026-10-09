@@ -36,7 +36,6 @@ export async function readSessionMember(): Promise<SessionMember | null> {
     id: data.id,
     full_name: data.full_name,
     role: data.role as Role,
-    code: data.code,
   };
 }
 
@@ -84,7 +83,13 @@ export async function listMembers(): Promise<Member[]> {
     .select("id, full_name, role, code, last_login_at")
     .order("role", { ascending: true })
     .order("full_name", { ascending: true });
-  return (data ?? []) as Member[];
+  return (data ?? []).map((row) => ({
+    id: row.id,
+    full_name: row.full_name,
+    role: row.role as Role,
+    has_code: Boolean(row.code),
+    last_login_at: row.last_login_at,
+  }));
 }
 
 export { supabaseAdmin };
