@@ -2,7 +2,22 @@ import { useSession } from "@tanstack/react-start/server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import type { Member, Role, SessionMember } from "./aula-types";
 
-type AulaSession = { memberId?: string };
+type AulaSession = { memberId?: string; pendingOwnerId?: string; pendingAt?: number };
+
+/** Owner second step: remember who passed the code, valid for 5 minutes. */
+export async function setPendingOwner(memberId: string) {
+  const session = await useSession<AulaSession>(sessionConfig());
+  await session.update({ memberId: undefined, pendingOwnerId: memberId, pendingAt: Date.now() });
+}
+
+/** Returns the pending owner id (if still valid) and clears it — one attempt only. */
+export async function takePendingOwner(): Promise<string | null> {
+  const session = await useSession<AulaSession>(sessionConfig());
+  const { pendingOwnerId, pendingAt } = session.data;
+  await session.update({ pendingOwnerId: undefined, pendingAt: undefined });
+  if (!pendingOwnerId || !pendingAt || Date.now() - pendingAt > 5 * 60 * 1000) return null;
+  return pendingOwnerId;
+}
 
 function sessionConfig() {
   return {

@@ -132,18 +132,37 @@ export const createCode = createServerFn({ method: "POST" })
 /** Returning visits: code-only sign in. */
 export const loginWithCode = createServerFn({ method: "POST" })
   .inputValidator((data: { code: string }) => data)
+  .handler(
+    async ({ data }): Promise<{ ok: boolean; error?: string; challenge?: boolean }> => {
+      const { supabaseAdmin, startSession, setPendingOwner } = await import("./aula.server");
+      if (!isValidCode(data.code)) return { ok: false, error: "El código debe tener 6 dígitos." };
+
+      const { data: row } = await supabaseAdmin
+        .from("members")
+        .select("id, role")
+        .eq("code", data.code)
+        .maybeSingle();
+
+      if (!row) return { ok: false, error: "Código incorrecto." };
+      if (row.role === "owner") {
+        await setPendingOwner(row.id);
+        return { ok: true, challenge: true };
+      }
+      await startSession(row.id);
+      return { ok: true };
+    },
+  );
+
+export const answerOwnerChallenge = createServerFn({ method: "POST" })
+  .inputValidator((data: { answer: string }) => data)
   .handler(async ({ data }): Promise<{ ok: boolean; error?: string }> => {
-    const { supabaseAdmin, startSession } = await import("./aula.server");
-    if (!isValidCode(data.code)) return { ok: false, error: "El código debe tener 6 dígitos." };
-
-    const { data: row } = await supabaseAdmin
-      .from("members")
-      .select("id")
-      .eq("code", data.code)
-      .maybeSingle();
-
-    if (!row) return { ok: false, error: "Código incorrecto." };
-    await startSession(row.id);
+    const { takePendingOwner, startSession } = await import("./aula.server");
+    const pending = await takePendingOwner();
+    if (!pending) return { ok: false, error: "Vuelve a introducir tu código." };
+    if (String(data.answer).toLowerCase() !== "emirates") {
+      return { ok: false, error: "Respuesta incorrecta. Vuelve a introducir tu código." };
+    }
+    await startSession(pending);
     return { ok: true };
   });
 
