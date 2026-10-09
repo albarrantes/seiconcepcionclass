@@ -2,7 +2,11 @@ import { useSession } from "@tanstack/react-start/server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import type { Member, Role, SessionMember } from "./aula-types";
 
-type AulaSession = { memberId?: string; pendingOwnerId?: string; pendingAt?: number };
+type AulaSession = {
+  memberId?: string | undefined;
+  pendingOwnerId?: string | undefined;
+  pendingAt?: number | undefined;
+};
 
 /** Owner second step: remember who passed the code, valid for 5 minutes. */
 export async function setPendingOwner(memberId: string) {
