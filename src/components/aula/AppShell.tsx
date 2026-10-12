@@ -81,7 +81,7 @@ export function AppShell({ member, children }: { member: SessionMember; children
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-6 py-8 md:flex-row">
           <div className="font-display font-bold tracking-tight">SEI Concepcion</div>
           <div className="font-mono text-xs text-ink-soft/60">
-            Acceso por código · {member.full_name}
+            {member.full_name}
           </div>
         </div>
       </footer>
