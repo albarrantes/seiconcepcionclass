@@ -14,6 +14,65 @@ export async function uploadAttachment(file: File): Promise<Attachment> {
   return { path: slot.path, name: file.name };
 }
 
+export const MAX_SUBMISSION_FILES = 8;
+
+export async function uploadAttachments(files: File[]): Promise<Attachment[]> {
+  const result: Attachment[] = [];
+  for (const file of files.slice(0, MAX_SUBMISSION_FILES)) {
+    result.push(await uploadAttachment(file));
+  }
+  return result;
+}
+
+export function MultiFilePicker({
+  files,
+  onChange,
+  max = MAX_SUBMISSION_FILES,
+}: {
+  files: File[];
+  onChange: (files: File[]) => void;
+}) {
+  return (
+    <div className="space-y-2 text-sm">
+      <label className="inline-block cursor-pointer rounded-lg px-3 py-2 font-mono text-xs ring-1 ring-line hover:bg-c1/10">
+        📎 Adjuntar archivos (máx. {max})
+        <input
+          type="file"
+          multiple
+          className="hidden"
+          onChange={(event) => {
+            const picked = Array.from(event.target.files ?? []);
+            onChange([...files, ...picked].slice(0, max));
+            event.target.value = "";
+          }}
+        />
+      </label>
+      {files.map((file, index) => (
+        <div key={`${file.name}-${index}`} className="flex items-center gap-2 text-ink-soft">
+          <span className="truncate">{file.name}</span>
+          <button
+            type="button"
+            onClick={() => onChange(files.filter((_, i) => i !== index))}
+            className="text-danger"
+          >
+            ✕
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function FileLinks({ files }: { files: Array<{ path: string; name: string }> }) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {files.map((file) => (
+        <FileLink key={file.path} path={file.path} name={file.name} />
+      ))}
+    </div>
+  );
+}
+
 export function FilePicker({
   file,
   onChange,
