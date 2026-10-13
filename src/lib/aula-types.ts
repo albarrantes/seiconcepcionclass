@@ -43,6 +43,7 @@ export type Submission = {
   submitted_at: string;
   file_path: string | null;
   file_name: string | null;
+  files: Array<{ path: string; name: string }>;
 };
 
 export type AssignmentWithMine = Assignment & {

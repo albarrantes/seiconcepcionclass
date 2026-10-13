@@ -18,6 +18,17 @@ function cleanAttachment(file: Attachment | null | undefined, memberId: string):
   return { path: file.path, name: String(file.name ?? "archivo").slice(0, 200) };
 }
 
+export const MAX_SUBMISSION_FILES = 8;
+
+/** Validate up to MAX_SUBMISSION_FILES attachments uploaded into the caller's folder. */
+function cleanAttachments(files: Attachment[] | null | undefined, memberId: string): Attachment[] {
+  if (!Array.isArray(files)) return [];
+  return files
+    .slice(0, MAX_SUBMISSION_FILES)
+    .map((file) => cleanAttachment(file, memberId))
+    .filter((file): file is Attachment => file !== null);
+}
+
 /** Signed one-time upload slot inside the caller's own folder. */
 export const prepareUpload = createServerFn({ method: "POST" })
   .inputValidator((data: { fileName: string }) => data)
@@ -49,7 +60,7 @@ export const getFileUrl = createServerFn({ method: "POST" })
       const { data: sub } = await supabaseAdmin
         .from("submissions")
         .select("member_id")
-        .eq("file_path", data.path)
+        .contains("files", [{ path: data.path }])
         .maybeSingle();
       allowed = Boolean(sub) && (sub!.member_id === member.id || member.role !== "student");
     }
@@ -286,14 +297,19 @@ export const getAssignment = createServerFn({ method: "GET" })
   });
 
 export const submitAssignment = createServerFn({ method: "POST" })
-  .inputValidator((data: { assignmentId: string; content: string; file?: Attachment | null }) => data)
+  .inputValidator(
+    (data: { assignmentId: string; content: string; files?: Attachment[] | null }) => data,
+  )
   .handler(async ({ data }): Promise<{ ok: boolean; error?: string }> => {
     const { supabaseAdmin, requireMember } = await import("./aula.server");
     const member = await requireMember();
     const content = data.content.trim().slice(0, 5000);
-    const file = cleanAttachment(data.file, member.id);
-    if (!content && !file) return { ok: false, error: "Escribe tu entrega o adjunta un archivo." };
-    const filePatch = file ? { file_path: file.path, file_name: file.name } : {};
+    const files = cleanAttachments(data.files, member.id);
+    if (!content && files.length === 0) {
+      return { ok: false, error: "Escribe tu entrega o adjunta un archivo." };
+    }
+    const first = files[0] ?? null;
+    const filePatch = { files, file_path: first?.path ?? null, file_name: first?.name ?? null };
 
     const { error } = await supabaseAdmin
       .from("submissions")
