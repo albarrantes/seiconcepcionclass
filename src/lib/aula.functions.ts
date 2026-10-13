@@ -18,6 +18,17 @@ function cleanAttachment(file: Attachment | null | undefined, memberId: string):
   return { path: file.path, name: String(file.name ?? "archivo").slice(0, 200) };
 }
 
+export const MAX_SUBMISSION_FILES = 8;
+
+/** Validate up to MAX_SUBMISSION_FILES attachments uploaded into the caller's folder. */
+function cleanAttachments(files: Attachment[] | null | undefined, memberId: string): Attachment[] {
+  if (!Array.isArray(files)) return [];
+  return files
+    .slice(0, MAX_SUBMISSION_FILES)
+    .map((file) => cleanAttachment(file, memberId))
+    .filter((file): file is Attachment => file !== null);
+}
+
 /** Signed one-time upload slot inside the caller's own folder. */
 export const prepareUpload = createServerFn({ method: "POST" })
   .inputValidator((data: { fileName: string }) => data)
