@@ -169,6 +169,7 @@ export type Database = {
           feedback: string | null
           file_name: string | null
           file_path: string | null
+          files: Json
           grade: number | null
           id: string
           member_id: string
@@ -180,6 +181,7 @@ export type Database = {
           feedback?: string | null
           file_name?: string | null
           file_path?: string | null
+          files?: Json
           grade?: number | null
           id?: string
           member_id: string
@@ -191,6 +193,7 @@ export type Database = {
           feedback?: string | null
           file_name?: string | null
           file_path?: string | null
+          files?: Json
           grade?: number | null
           id?: string
           member_id?: string
